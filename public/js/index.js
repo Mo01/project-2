@@ -1,99 +1,39 @@
-// Get references to page elements
-var $exampleText = $("#example-text");
-var $exampleDescription = $("#example-description");
-var $submitBtn = $("#submit");
-var $exampleList = $("#example-list");
+// Hide some elements
+$("#logoutBtn").hide();
+$("#creatpostBtn").hide();
 
-// The API object contains methods for each kind of request we'll make
-var API = {
-  saveExample: function(example) {
-    return $.ajax({
-      headers: {
-        "Content-Type": "application/json"
-      },
-      type: "POST",
-      url: "api/examples",
-      data: JSON.stringify(example)
-    });
-  },
-  getExamples: function() {
-    return $.ajax({
-      url: "api/examples",
-      type: "GET"
-    });
-  },
-  deleteExample: function(id) {
-    return $.ajax({
-      url: "api/examples/" + id,
-      type: "DELETE"
-    });
-  }
-};
+// Populating all of the links with the names of the forums
+$.get("/api/gettingForumTitles").then(function(data) {
+  $("#forum-left").empty();
+  $("#forum-dropdown").empty();
+  $("#forum-createPost").empty();
+  data.forEach(function(forumObj) {
+    // Appending forum titles to the left nav bar
+    var li = $("<li>");
+    li.addClass("nav-item");
+    li.attr("scope", "col");
 
-// refreshExamples gets new examples from the db and repopulates the list
-var refreshExamples = function() {
-  API.getExamples().then(function(data) {
-    var $examples = data.map(function(example) {
-      var $a = $("<a>")
-        .text(example.text)
-        .attr("href", "/example/" + example.id);
+    var a1 = $("<a>");
+    a1.addClass("nav-link forumwhite");
+    a1.attr("href", "/f/" + forumObj.id);
+    a1.text(forumObj.forumName);
 
-      var $li = $("<li>")
-        .attr({
-          class: "list-group-item",
-          "data-id": example.id
-        })
-        .append($a);
+    li.append(a1);
+    $("#forum-left").append(li);
 
-      var $button = $("<button>")
-        .addClass("btn btn-danger float-right delete")
-        .text("ｘ");
+    // Appending forum titles to the nav bar dropdown
+    var a2 = $("<a>");
+    a2.addClass("dropdown-item");
+    a2.attr("href", "/f/" + forumObj.id);
+    a2.text(forumObj.forumName);
 
-      $li.append($button);
+    $("#forum-dropdown").append(a2);
 
-      return $li;
-    });
+    // Appending forum titles to the create post modal
+    var opt = $("<option>");
+    opt.val(forumObj.id);
+    opt.text(forumObj.forumName);
 
-    $exampleList.empty();
-    $exampleList.append($examples);
+    $("#forum-createPost").append(opt);
   });
-};
-
-// handleFormSubmit is called whenever we submit a new example
-// Save the new example to the db and refresh the list
-var handleFormSubmit = function(event) {
-  event.preventDefault();
-
-  var example = {
-    text: $exampleText.val().trim(),
-    description: $exampleDescription.val().trim()
-  };
-
-  if (!(example.text && example.description)) {
-    alert("You must enter an example text and description!");
-    return;
-  }
-
-  API.saveExample(example).then(function() {
-    refreshExamples();
-  });
-
-  $exampleText.val("");
-  $exampleDescription.val("");
-};
-
-// handleDeleteBtnClick is called when an example's delete button is clicked
-// Remove the example from the db and refresh the list
-var handleDeleteBtnClick = function() {
-  var idToDelete = $(this)
-    .parent()
-    .attr("data-id");
-
-  API.deleteExample(idToDelete).then(function() {
-    refreshExamples();
-  });
-};
-
-// Add event listeners to the submit and delete buttons
-$submitBtn.on("click", handleFormSubmit);
-$exampleList.on("click", ".delete", handleDeleteBtnClick);
+});

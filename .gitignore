@@ -2,3 +2,7 @@
 node_modules
 npm-debug.log
 .env
+package.json
+package-lock.json
+config/config.json
+config.json
